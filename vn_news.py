@@ -1,25 +1,26 @@
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
-import dns
 
 # connect to atlas mongodb
 client = MongoClient(
     "mongodb+srv://m001-student:namanh123@sandbox-fwkp4.mongodb.net/test?retryWrites=true&w=majority")
 db = client.news
 collection = db.news_collection
-# print all avaiable db
+# print all available db
 print(client.list_database_names())
 
-base_url = 'https://vnexpress.net/giao-duc'
+base_url = 'https://vnexpress.net/giao-duc-p1'
 
 # Get the link
 
 
 def parse_url(url):
+    """
+    """
     try:
         response = requests.get(url)
-        soup = BeautifulSoup(response.text, features="lxml")
+        soup = BeautifulSoup(response.text, features="html.parser")
         return soup
 
     except Exception as err:
@@ -33,21 +34,17 @@ def parse_url(url):
 # Get all the content and titles
 def get_content(url):
     s = parse_url(url)
-#     print(s.find_all('a', class_="btn-page next-page "))
-    res = s.find_all('a', class_="btn-page next-page ")
     b = s.find_all('article', class_="item-news item-news-common off-thumb")
     res = s.find_all('a', class_="btn-page next-page ")[0].get('href')
     titles = [i.find_all('a')[0].string.replace('.', '')
               for i in b]
     des = [i.find_all('a')[1].string for i in b]
-    d = {}
-    a = []
-    # print(des)
-    # print(len(titles))
-    for i in range(len(titles)):
-        d[titles[i]] = des[i]
-        a.append(d)
-        d = {}
+    a = list(map(lambda x: {x[0]: x[1]}, zip(titles, des)))
+
+    del des
+    del titles
+    del s
+    del b
 
     return a, res
 
@@ -75,4 +72,4 @@ def get_all(url):
     return
 
 
-get_content(base_url)
+get_all(base_url)
